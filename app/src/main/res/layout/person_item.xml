@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:layout_margin="10dp"
+    android:layout_gravity="center"
+    android:paddingRight="@dimen/activity_vertical_margin">
+
+    <ImageView
+        android:id="@+id/image_view_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/icon_left_padding"
+        android:src="@drawable/ic_person_amber_a700_48dp" />
+
+    <TextView
+        android:id="@+id/text_view_person_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/text_item_left_padding"
+        android:gravity="center"
+        tools:text="Name" />
+
+    <CheckBox
+        android:id="@+id/check_box_select"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:visibility="gone"/>
+
+</RelativeLayout>
