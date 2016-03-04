@@ -12,8 +12,9 @@ public class CreatePersonMigration extends Migration {
     protected void doMigration(SQLiteDatabase db) {
         db.execSQL(
                 "CREATE TABLE " + Attribute.TABLE_NAME + " (" +
-                        Attribute.NAME + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        Attribute.EMAIL + " INTEGER," +
+                        Attribute.NAME + " TEXT, " +
+                        Attribute.ID + " INTEGER PRIMARY KEY, " +
+                        Attribute.IMAGE_URL + " INTEGER" +
                         ")"
         );
     }
@@ -21,6 +22,7 @@ public class CreatePersonMigration extends Migration {
     public class Attribute {
         public static final String TABLE_NAME = "persons";
         public static final String NAME = "name";
-        public static final String EMAIL = "email";
+        public static final String IMAGE_URL = "image";
+        public static final String ID = "id";
     }
 }

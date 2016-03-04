@@ -1,44 +1,48 @@
 package com.example.ueliton.realmlab.Activity;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
-import com.example.ueliton.realmlab.Adapter.PersonAdapter;
 import com.example.ueliton.realmlab.DAO.Interface.DogDAO;
 import com.example.ueliton.realmlab.DAO.Interface.PersonDAO;
-import com.example.ueliton.realmlab.Interface.OnRemoveClick;
 import com.example.ueliton.realmlab.Model.Dog;
 import com.example.ueliton.realmlab.Factory.PetShopDAOFactory;
 import com.example.ueliton.realmlab.Model.RealmPerson;
-import com.example.ueliton.realmlab.Interface.OnCheckBoxesShow;
+import com.example.ueliton.realmlab.Model.SprinklesPerson;
 import com.example.ueliton.realmlab.R;
-
-import java.util.Collections;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmAsyncTask;
 import io.realm.RealmResults;
 
 public class MainActivity extends BaseActivity {
 
-    private String TAG="REAL LAB";
+    private static final int FOLD = 1;
+    private static final int BLEND = 5000;
+    private Dialog loadingDialog;
+    private String TAG = "REAL LAB";
 
-    @Bind(R.id.recycler_view_persons)
-    RecyclerView mRecyclerView;
+    @Bind(R.id.realm_test_report)
+    TextView realmTestReport;
 
-    private LinearLayoutManager mLinearLayoutManager;
-    private PersonAdapter mAdapter;
-    List<RealmPerson> mRealmPersons = Collections.emptyList();
+    @Bind(R.id.sprinkles_test_report)
+    TextView sprinklesTestReport;
 
     private PersonDAO personDAO;
-    private static Long personId = 0l;
+    private static int personId = 0;
+    private RealmAsyncTask transaction;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,16 +56,6 @@ public class MainActivity extends BaseActivity {
         setUpToolBar();
 
         setUpFab();
-
-        setUpPersonsList();
-
-        setOnRemoveItem(new OnRemoveClick() {
-            @Override
-            public void onRemoveClick() {
-                personDAO.delete(mAdapter.getSelectedItens());
-                mAdapter.updatePersons(personDAO.findAll());
-            }
-        });
 
         // Use them like regular java objects
         Dog dog = new Dog();
@@ -90,45 +84,124 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
 
-                PersonDAO personDAO = PetShopDAOFactory.getPersonDAO();
 
-                Log.d("LOG", "Salvando");
-                for (int i = 0; i < 3000; i++) {
-                    RealmPerson realmPerson = new RealmPerson();
-                    realmPerson.setName("Name " + getPersonId());
-                    personDAO.save(realmPerson);
+                showLoadingDialog(MainActivity.this);
+                runTest();
+            }
+        });
+    }
+
+    private void hideLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+    }
+
+    private void showLoadingDialog(Context context) {
+
+        if (loadingDialog == null || !loadingDialog.isShowing()) {
+            loadingDialog = ProgressDialog.show(context, "", "Por favor, aguarde um instante...", true);
+        }
+    }
+
+
+    private void runTest() {
+
+        runRowInsertRealm();
+        runSprinklesInsert();
+    }
+
+    private void runSprinklesInsert() {
+        new SprinklesAssync().execute();
+    }
+
+    class SprinklesAssync extends AsyncTask<Void, Void, Void> {
+
+        private long initialTime;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+           initialTime = System.currentTimeMillis();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            for (int j = 0; j < FOLD; j++) {
+                for (int i = 0; i < BLEND; i++) {
+                    SprinklesPerson person = new SprinklesPerson();
+                    person.setName("Name " + getPersonId());
+                    person.save();
                 }
-
-                Log.d("LOG", "salvo");
-                mAdapter.updatePersons(personDAO.findAll());
             }
-        });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            setSprinklesMessage("Sprinkles Time spend: " + (System.currentTimeMillis() - initialTime) + "m");
+            setSprinklesMessage(" Number of itens inserted: " + SprinklesPerson.findAll().size());
+
+        }
     }
 
-    private String getPersonId() {
-        return (personId++).toString();
+    private void setSprinklesMessage(String test) {
+        String m = sprinklesTestReport.getText().toString();
+        sprinklesTestReport.setText(m + test + "\n");
     }
 
-    private void setUpPersonsList() {
+    private void runRowInsertRealm() {
 
-        mLinearLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLinearLayoutManager);
+        final long initialTime = System.currentTimeMillis();
 
-        mAdapter = new PersonAdapter(this, mRealmPersons, new OnCheckBoxesShow() {
+        setRealmMessage("Insert Realm");
+
+        transaction = realm.executeTransaction(new Realm.Transaction() {
             @Override
-            public void onCheckBoxShow() {
-                showToolBarRemoveButton();
+            public void execute(Realm bgRealm) {
+                for (int j = 0; j < FOLD; j++) {
+                    for (int i = 0; i < BLEND; i++) {
+                        RealmPerson realmPerson = new RealmPerson();
+                        realmPerson.setId(getPersonId());
+                        realmPerson.setName("Name " + getPersonId());
+                        bgRealm.copyToRealm(realmPerson);
+                    }
+                }
+            }
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+                setRealmMessage("Realm Time spend: " + (System.currentTimeMillis() - initialTime) + "m");
+                Realm realm = Realm.getDefaultInstance();
+                setRealmMessage(" Number of itens inserted: "+realm.where(RealmPerson.class).findAll().size() );
+                hideLoadingDialog();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                setRealmMessage("Erro! ");
+                hideLoadingDialog();
+                e.printStackTrace();
+
+                // transaction is automatically rolled-back, do any cleanup here
             }
         });
-        mRecyclerView.setAdapter(mAdapter);
+
+    }
+
+    private void setRealmMessage(String test) {
+        String m = realmTestReport.getText().toString();
+        realmTestReport.setText(m + test + "\n");
+    }
+
+    public int getPersonId() {
+       return personId++;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        mRealmPersons = personDAO.findAll();
-        mAdapter.updatePersons(mRealmPersons);
     }
 
     @Override
@@ -156,6 +229,10 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onStop() {
         super.onStop();
+
+        if (transaction != null && !transaction.isCancelled()) {
+            transaction.cancel();
+        }
     }
 
 }
