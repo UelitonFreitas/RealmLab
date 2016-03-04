@@ -1,8 +1,7 @@
 package com.example.ueliton.realmlab.DAO.Implementation;
 
 import com.example.ueliton.realmlab.DAO.Interface.PersonDAO;
-import com.example.ueliton.realmlab.Model.Dog;
-import com.example.ueliton.realmlab.Model.Person;
+import com.example.ueliton.realmlab.Model.RealmPerson;
 
 import java.util.List;
 
@@ -14,43 +13,34 @@ import io.realm.RealmResults;
  */
 public class PersonDAOIpl implements PersonDAO {
     @Override
-    public void save(final Person person) {
+    public void save(final RealmPerson realmPerson) {
 
         Realm realm = Realm.getDefaultInstance();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                realm.copyToRealm(person);
+                realm.copyToRealm(realmPerson);
             }
         });
     }
 
-    @Override
-    public void delete() {
-
-    }
 
     @Override
-    public void update() {
-
-    }
-
-    @Override
-    public List<Person> findAll() {
+    public List<RealmPerson> findAll() {
         Realm realm = Realm.getDefaultInstance();
-        RealmResults<Person> persons = realm.where(Person.class).findAll();
-        return persons;
+        RealmResults<RealmPerson> realmPersons = realm.where(RealmPerson.class).findAll();
+        return realmPersons;
     }
 
     @Override
-    public void delete(final List<Person> personsToBeDeleted) {
+    public void delete(final List<RealmPerson> personsToBeDeleted) {
         Realm realm = Realm.getDefaultInstance();
 
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                for (Person person: personsToBeDeleted) {
-                    person.removeFromRealm();
+                for (RealmPerson realmPerson : personsToBeDeleted) {
+                    realmPerson.removeFromRealm();
                 }
             }
         });

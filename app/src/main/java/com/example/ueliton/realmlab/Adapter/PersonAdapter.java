@@ -9,7 +9,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.example.ueliton.realmlab.Model.Person;
+import com.example.ueliton.realmlab.Model.RealmPerson;
 import com.example.ueliton.realmlab.Interface.OnCheckBoxesShow;
 import com.example.ueliton.realmlab.R;
 
@@ -26,14 +26,14 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
 
 
     private OnCheckBoxesShow onCheckBoxesShow;
-    private List<Person> mPersons;
+    private List<RealmPerson> mRealmPersons;
     private List<ListControl> mListControls;
     LayoutInflater inflater;
 
-    public PersonAdapter(Context context, List<Person> persons, OnCheckBoxesShow onCheckBoxesShow) {
+    public PersonAdapter(Context context, List<RealmPerson> realmPersons, OnCheckBoxesShow onCheckBoxesShow) {
 
         this.inflater = LayoutInflater.from(context);
-        this.mPersons = persons;
+        this.mRealmPersons = realmPersons;
         this.onCheckBoxesShow = onCheckBoxesShow;
         initializeList();
     }
@@ -41,8 +41,8 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     private void initializeList() {
 
         mListControls = new ArrayList<>();
-        for (Person person: mPersons) {
-            mListControls.add(new ListControl(person));
+        for (RealmPerson realmPerson : mRealmPersons) {
+            mListControls.add(new ListControl(realmPerson));
         }
     }
 
@@ -56,10 +56,10 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
     @Override
     public void onBindViewHolder(PersonViewHolder holder, int position) {
 
-        if(mPersons.size() > 0) {
+        if(mRealmPersons.size() > 0) {
             ListControl listControl = mListControls.get(position);
-            Person person = mPersons.get(position);
-            holder.setName(person.getName());
+            RealmPerson realmPerson = mRealmPersons.get(position);
+            holder.setName(realmPerson.getName());
             holder.setCheckBoxVisible(listControl.getShowCheckbox());
             holder.setItemChecked(listControl.getIsSelected());
         }
@@ -70,22 +70,22 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         return mListControls.size();
     }
 
-    public void updatePersons(List<Person> mPersons) {
-        this.mPersons = mPersons;
+    public void updatePersons(List<RealmPerson> mRealmPersons) {
+        this.mRealmPersons = mRealmPersons;
         initializeList();
         notifyDataSetChanged();
     }
 
 
-    public List<Person> getSelectedItens() {
+    public List<RealmPerson> getSelectedItens() {
 
-        List<Person> selectedPersons = new ArrayList<>();
+        List<RealmPerson> selectedRealmPersons = new ArrayList<>();
         for (int i = 0; i < mListControls.size(); i++) {
             if(mListControls.get(i).isSelected) {
-                selectedPersons.add(mPersons.get(i));
+                selectedRealmPersons.add(mRealmPersons.get(i));
             }
         }
-        return selectedPersons;
+        return selectedRealmPersons;
     }
 
     public class PersonViewHolder extends RecyclerView.ViewHolder{
@@ -147,7 +147,7 @@ public class PersonAdapter extends RecyclerView.Adapter<PersonAdapter.PersonView
         private Boolean isSelected;
         private Boolean showCheckbox;
 
-        public ListControl(Person aPerson) {
+        public ListControl(RealmPerson aRealmPerson) {
 
             this.setIsSelected(false);
             this.setShowCheckbox(false);

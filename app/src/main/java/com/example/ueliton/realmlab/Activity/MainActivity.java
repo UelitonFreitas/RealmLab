@@ -15,7 +15,7 @@ import com.example.ueliton.realmlab.DAO.Interface.PersonDAO;
 import com.example.ueliton.realmlab.Interface.OnRemoveClick;
 import com.example.ueliton.realmlab.Model.Dog;
 import com.example.ueliton.realmlab.Factory.PetShopDAOFactory;
-import com.example.ueliton.realmlab.Model.Person;
+import com.example.ueliton.realmlab.Model.RealmPerson;
 import com.example.ueliton.realmlab.Interface.OnCheckBoxesShow;
 import com.example.ueliton.realmlab.R;
 
@@ -35,7 +35,7 @@ public class MainActivity extends BaseActivity {
 
     private LinearLayoutManager mLinearLayoutManager;
     private PersonAdapter mAdapter;
-    List<Person> mPersons = Collections.emptyList();
+    List<RealmPerson> mRealmPersons = Collections.emptyList();
 
     private PersonDAO personDAO;
     private static Long personId = 0l;
@@ -91,10 +91,15 @@ public class MainActivity extends BaseActivity {
             public void onClick(View view) {
 
                 PersonDAO personDAO = PetShopDAOFactory.getPersonDAO();
-                Person person = new Person();
-                person.setName("Name "+getPersonId());
-                personDAO.save(person);
 
+                Log.d("LOG", "Salvando");
+                for (int i = 0; i < 3000; i++) {
+                    RealmPerson realmPerson = new RealmPerson();
+                    realmPerson.setName("Name " + getPersonId());
+                    personDAO.save(realmPerson);
+                }
+
+                Log.d("LOG", "salvo");
                 mAdapter.updatePersons(personDAO.findAll());
             }
         });
@@ -109,7 +114,7 @@ public class MainActivity extends BaseActivity {
         mLinearLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
 
-        mAdapter = new PersonAdapter(this, mPersons, new OnCheckBoxesShow() {
+        mAdapter = new PersonAdapter(this, mRealmPersons, new OnCheckBoxesShow() {
             @Override
             public void onCheckBoxShow() {
                 showToolBarRemoveButton();
@@ -122,8 +127,8 @@ public class MainActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
-        mPersons = personDAO.findAll();
-        mAdapter.updatePersons(mPersons);
+        mRealmPersons = personDAO.findAll();
+        mAdapter.updatePersons(mRealmPersons);
     }
 
     @Override

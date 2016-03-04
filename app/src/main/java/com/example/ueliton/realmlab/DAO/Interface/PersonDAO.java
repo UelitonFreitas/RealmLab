@@ -1,7 +1,6 @@
 package com.example.ueliton.realmlab.DAO.Interface;
 
-import com.example.ueliton.realmlab.Model.Dog;
-import com.example.ueliton.realmlab.Model.Person;
+import com.example.ueliton.realmlab.Model.RealmPerson;
 
 import java.util.List;
 
@@ -10,9 +9,8 @@ import java.util.List;
  */
 public interface PersonDAO{
 
-    void save(Person person);
-    void delete();
-    void update();
-    List<Person> findAll();
-    void delete(List<Person> personsToBeDeleted);
+    void save(RealmPerson realmPerson);
+
+    List<RealmPerson> findAll();
+    void delete(List<RealmPerson> personsToBeDeleted);
 }
