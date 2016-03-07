@@ -1,5 +1,7 @@
 package com.example.ueliton.realmlab.Model;
 
+import android.app.Activity;
+
 import com.example.ueliton.realmlab.Migration.CreatePersonMigration;
 
 import java.util.Collections;
@@ -7,6 +9,7 @@ import java.util.Dictionary;
 import java.util.List;
 
 import io.realm.annotations.PrimaryKey;
+import se.emilsjolander.sprinkles.ManyQuery;
 import se.emilsjolander.sprinkles.Model;
 import se.emilsjolander.sprinkles.Query;
 import se.emilsjolander.sprinkles.annotations.AutoIncrement;
@@ -57,5 +60,10 @@ public class SprinklesPerson extends Model {
             return banks;
         }
         return Collections.emptyList();
+    }
+
+    public static void findAllAsync(Activity activity, ManyQuery.ResultHandler<SprinklesPerson> handler) {
+        String query = " SELECT * FROM "+ CreatePersonMigration.Attribute.TABLE_NAME;
+       Query.many(SprinklesPerson.class, query).getAsync(activity.getLoaderManager(), handler, SprinklesPerson.class);
     }
 }

@@ -11,18 +11,18 @@ import io.realm.annotations.Required;
 public class RealmPerson extends RealmObject {
 
     @PrimaryKey
-    private int id;
+    private String id;
 
     @Required // Name is not nullable
     private String name;
     private String imageUrl; // imageUrl is an optional field
     private RealmList<Dog> dogs; // A person has many dogs (a relationship)
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 

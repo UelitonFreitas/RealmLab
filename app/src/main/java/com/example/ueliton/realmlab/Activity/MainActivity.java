@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.ueliton.realmlab.DAO.Interface.DogDAO;
@@ -21,24 +22,41 @@ import com.example.ueliton.realmlab.Model.RealmPerson;
 import com.example.ueliton.realmlab.Model.SprinklesPerson;
 import com.example.ueliton.realmlab.R;
 
+import java.util.UUID;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.Realm;
 import io.realm.RealmAsyncTask;
 import io.realm.RealmResults;
+import se.emilsjolander.sprinkles.CursorList;
+import se.emilsjolander.sprinkles.ManyQuery;
 
 public class MainActivity extends BaseActivity {
 
-    private static final int FOLD = 1;
-    private static final int BLEND = 5000;
+    private static final String DIVIDER = "\n-------------------\n";
+    private static int FOLD = 1;
+    private static int BLEND = 5000;
     private Dialog loadingDialog;
     private String TAG = "REAL LAB";
 
     @Bind(R.id.realm_test_report)
     TextView realmTestReport;
 
+    @Bind(R.id.edit_text_folder_rep)
+    TextView folders;
+
+    @Bind(R.id.edit_text_nmb_data)
+    TextView numberOfData;
+
     @Bind(R.id.sprinkles_test_report)
     TextView sprinklesTestReport;
+
+    @Bind(R.id.realm_progressBar)
+    ProgressBar realmProgressBar;
+
+    @Bind(R.id.sprinkles_progressBar)
+    ProgressBar sprinklesProgressBar;
 
     private PersonDAO personDAO;
     private static int personId = 0;
@@ -56,26 +74,26 @@ public class MainActivity extends BaseActivity {
         setUpToolBar();
 
         setUpFab();
-
-        // Use them like regular java objects
-        Dog dog = new Dog();
-        dog.setName("Rex");
-        dog.setAge(1);
-        Log.v(TAG, "Name of the dog: " + dog.getName());
-
-
-        DogDAO dogDAO = PetShopDAOFactory.getDogDAO();
-        dogDAO.findAllWithAgeLessThan(2);
+//
+//        // Use them like regular java objects
+//        Dog dog = new Dog();
+//        dog.setName("Rex");
+//        dog.setAge(1);
+//        Log.v(TAG, "Name of the dog: " + dog.getName());
+//
+//
+//        DogDAO dogDAO = PetShopDAOFactory.getDogDAO();
+//        dogDAO.findAllWithAgeLessThan(2);
 
         // Query Realm for all dogs less than 2 years old
 //        RealmResults<Dog> puppies = realm.where(Dog.class).lessThan("age", 2).findAll();
-        RealmResults<Dog> puppies = dogDAO.findAllWithAgeLessThan(2);
-        puppies.size(); // => 0 because no dogs have been added to the Realm yet
-
-        dogDAO.save(dog);
-
-        // Queries are updated in real time
-        puppies.size(); // => 1
+//        RealmResults<Dog> puppies = dogDAO.findAllWithAgeLessThan(2);
+//        puppies.size(); // => 0 because no dogs have been added to the Realm yet
+//
+//        dogDAO.save(dog);
+//
+//        // Queries are updated in real time
+//        puppies.size(); // => 1
     }
 
     private void setUpFab() {
@@ -84,7 +102,10 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View view) {
 
-
+                FOLD = Integer.parseInt(folders.getText().toString());
+                BLEND =  Integer.parseInt(numberOfData.getText().toString());
+                setRealmMessage(DIVIDER);
+                setSprinklesMessage(DIVIDER);
                 showLoadingDialog(MainActivity.this);
                 runTest();
             }
@@ -92,15 +113,13 @@ public class MainActivity extends BaseActivity {
     }
 
     private void hideLoadingDialog() {
-        if (loadingDialog != null && loadingDialog.isShowing())
-            loadingDialog.dismiss();
+        realmProgressBar.setVisibility(View.GONE);
     }
 
     private void showLoadingDialog(Context context) {
 
-        if (loadingDialog == null || !loadingDialog.isShowing()) {
-            loadingDialog = ProgressDialog.show(context, "", "Por favor, aguarde um instante...", true);
-        }
+        realmProgressBar.setVisibility(View.VISIBLE);
+        sprinklesProgressBar.setVisibility(View.VISIBLE);
     }
 
 
@@ -111,6 +130,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void runSprinklesInsert() {
+        setSprinklesMessage("Processando...");
         new SprinklesAssync().execute();
     }
 
@@ -121,7 +141,7 @@ public class MainActivity extends BaseActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-           initialTime = System.currentTimeMillis();
+            initialTime = System.currentTimeMillis();
         }
 
         @Override
@@ -139,8 +159,18 @@ public class MainActivity extends BaseActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            setSprinklesMessage("Sprinkles Time spend: " + (System.currentTimeMillis() - initialTime) + "m");
-            setSprinklesMessage(" Number of itens inserted: " + SprinklesPerson.findAll().size());
+
+            ManyQuery.ResultHandler<SprinklesPerson> handler = new ManyQuery.ResultHandler<SprinklesPerson>() {
+                @Override
+                public boolean handleResult(CursorList<SprinklesPerson> result) {
+
+                    setSprinklesMessage("Tempo gasto Sprinkles: " + (System.currentTimeMillis() - initialTime) + "m");
+                    setSprinklesMessage("Número total de itens: " + result.size());
+                    sprinklesProgressBar.setVisibility(View.GONE);
+                    return false;
+                }
+            };
+            SprinklesPerson.findAllAsync(MainActivity.this, handler);
 
         }
     }
@@ -154,11 +184,13 @@ public class MainActivity extends BaseActivity {
 
         final long initialTime = System.currentTimeMillis();
 
-        setRealmMessage("Insert Realm");
+        setRealmMessage("Processando...");
 
+        realmProgressBar.setVisibility(View.VISIBLE);
         transaction = realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm bgRealm) {
+
                 for (int j = 0; j < FOLD; j++) {
                     for (int i = 0; i < BLEND; i++) {
                         RealmPerson realmPerson = new RealmPerson();
@@ -169,12 +201,10 @@ public class MainActivity extends BaseActivity {
                 }
             }
         }, new Realm.Transaction.Callback() {
+
             @Override
             public void onSuccess() {
-                setRealmMessage("Realm Time spend: " + (System.currentTimeMillis() - initialTime) + "m");
-                Realm realm = Realm.getDefaultInstance();
-                setRealmMessage(" Number of itens inserted: "+realm.where(RealmPerson.class).findAll().size() );
-                hideLoadingDialog();
+                updateSprinklesResults(initialTime);
             }
 
             @Override
@@ -189,13 +219,32 @@ public class MainActivity extends BaseActivity {
 
     }
 
+    private void updateSprinklesResults(final long initialTime) {
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+
+            }
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+
+                setRealmMessage("Tempo gasto Realm: " + (System.currentTimeMillis() - initialTime) + "m");
+                Realm realm = Realm.getDefaultInstance();
+                setRealmMessage("Número total de itens: " + realm.where(RealmPerson.class).findAll().size());
+                hideLoadingDialog();
+            }
+        });
+    }
+
     private void setRealmMessage(String test) {
         String m = realmTestReport.getText().toString();
         realmTestReport.setText(m + test + "\n");
     }
 
-    public int getPersonId() {
-       return personId++;
+    public String getPersonId() {
+        return UUID.randomUUID().toString();
     }
 
     @Override
