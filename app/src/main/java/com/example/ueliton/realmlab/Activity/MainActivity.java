@@ -61,6 +61,7 @@ public class MainActivity extends BaseActivity {
     private PersonDAO personDAO;
     private static int personId = 0;
     private RealmAsyncTask transaction;
+    private Integer remalmNumberOfElements;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -225,14 +226,14 @@ public class MainActivity extends BaseActivity {
             @Override
             public void execute(Realm realm) {
 
+                remalmNumberOfElements = realm.where(RealmPerson.class).findAll().size();
             }
         }, new Realm.Transaction.Callback() {
             @Override
             public void onSuccess() {
 
                 setRealmMessage("Tempo gasto Realm: " + (System.currentTimeMillis() - initialTime) + "m");
-                Realm realm = Realm.getDefaultInstance();
-                setRealmMessage("Número total de itens: " + realm.where(RealmPerson.class).findAll().size());
+                setRealmMessage("Número total de itens: " + MainActivity.this.remalmNumberOfElements.toString());
                 hideLoadingDialog();
             }
         });
